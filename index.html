@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLAYER 1: 김범수 (KIM BUM SOO)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Pixel Font Import -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DungGeunMo&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* 8비트 레트로 전용 폰트 및 스타일 */
+        body {
+            font-family: 'DungGeunMo', monospace;
+            background-color: #0f051d;
+            color: #33ff66;
+            image-rendering: pixelated;
+        }
+
+        .pixel-font-en {
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        /* 레트로 CRT 화면 스캔라인 효과 */
+        .scanline {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+        }
+
+        /* 8비트 테두리 네온 박스 효과 */
+        .pixel-box {
+            border: 4px solid #33ff66;
+            box-shadow: 4px 4px 0px #008822, -4px -4px 0px #00ff88 inset;
+            background-color: #1a0933;
+        }
+
+        .pixel-box-pink {
+            border: 4px solid #ff2a8d;
+            box-shadow: 4px 4px 0px #99004d, -4px -4px 0px #ff66b2 inset;
+            background-color: #2b0826;
+        }
+
+        .pixel-box-yellow {
+            border: 4px solid #ffcc00;
+            box-shadow: 4px 4px 0px #997700, -4px -4px 0px #ffdd55 inset;
+            background-color: #2a2100;
+        }
+
+        /* 레트로 푸시 버튼 효과 */
+        .pixel-btn {
+            position: relative;
+            display: inline-block;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            text-align: center;
+            color: #fff;
+            text-shadow: 2px 2px #000;
+            background-color: #ff2a8d;
+            border: none;
+            box-shadow: inset -4px -4px 0px 0px #99004d, inset 4px 4px 0px 0px #ff99cc, 4px 4px 0px 0px #000;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.05s ease;
+        }
+
+        .pixel-btn:active {
+            box-shadow: inset 4px 4px 0px 0px #99004d, inset -4px -4px 0px 0px #ff99cc;
+            transform: translate(2px, 2px);
+        }
+
+        .pixel-btn-cyan {
+            background-color: #00e5ff;
+            box-shadow: inset -4px -4px 0px 0px #008b99, inset 4px 4px 0px 0px #80f2ff, 4px 4px 0px 0px #000;
+            color: #000;
+            text-shadow: none;
+        }
+
+        .pixel-btn-yellow {
+            background-color: #ffcc00;
+            box-shadow: inset -4px -4px 0px 0px #997700, inset 4px 4px 0px 0px #ffea80, 4px 4px 0px 0px #000;
+            color: #000;
+            text-shadow: none;
+        }
+
+        /* 카드 뒤집기 애니메이션 */
+        .flip-card {
+            background-color: transparent;
+            perspective: 1000px;
+            height: 220px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* 깜빡이는 애니메이션 */
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        /* Shake 효과 (퀴즈 오답 및 통과시) */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .shake-anim {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Arcade Screen Container */
+        .arcade-cabinet {
+            background: #120024;
+            border: 8px solid #ff0055;
+            box-shadow: 0 0 20px #ff0055, inset 0 0 15px #ff0055;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 relative overflow-x-hidden scanline">
+
+    <!-- Header Section / Arcade Title -->
+    <header class="w-full pt-8 pb-4 text-center px-4">
+        <div class="inline-block p-2 px-6 bg-black border-4 border-cyan-400 shadow-[6px_6px_0px_#008b99] mb-4">
+            <span class="pixel-font-en text-yellow-300 text-xs sm:text-sm tracking-widest uppercase">INSERT COIN TO START</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-cyan-400 drop-shadow-[3px_3px_0px_#000]">
+            ★ PLAYER 1 ★
+        </h1>
+        <p class="text-xl sm:text-2xl mt-2 text-cyan-300 font-bold">
+            별명: <span class="text-yellow-300 bg-black px-3 py-1 border-2 border-yellow-400">김범수</span>
+        </p>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 space-y-12">
+
+        <!-- SECTION 1: Intro / Character Status -->
+        <section class="pixel-box p-6 rounded-lg text-center relative">
+            <div class="absolute -top-4 left-6 bg-emerald-500 text-black px-3 py-1 font-bold text-sm">
+                CHARACTER STATUS
+            </div>
+            <div class="flex flex-col sm:flex-row items-center justify-around gap-6 mt-2">
+                <div class="w-32 h-32 bg-purple-950 border-4 border-emerald-400 flex items-center justify-center text-6xl shadow-[4px_4px_0px_#000]">
+                    🕹️
+                </div>
+                <div class="text-left space-y-2 flex-1 w-full sm:w-auto">
+                    <p class="text-lg text-emerald-300">Class: <span class="text-white">만능 오락실 마스터</span></p>
+                    <p class="text-lg text-emerald-300">HP: <span class="text-red-500">██████████</span> 100%</p>
+                    <p class="text-lg text-emerald-300">MP: <span class="text-cyan-400">████████░░</span> 80%</p>
+                    <p class="text-base text-gray-300 leading-relaxed border-t-2 border-dashed border-emerald-800 pt-2">
+                        "반갑습니다! 레트로 오락실 세상에 오신 것을 환영합니다. 아래 카드를 클릭해서 저에 대한 비밀 정보들을 해제해 보세요!"
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: 3 Favorites (3D Flip Cards) -->
+        <section>
+            <div class="text-center mb-6">
+                <h2 class="text-2xl sm:text-3xl font-bold text-pink-400 drop-shadow-[2px_2px_0px_#000]">
+                    [ 내가 좋아하는 3가지 ]
+                </h2>
+                <p class="text-sm text-cyan-300 mt-1 blink">★ 카드를 누르면 이유가 오픈됩니다! ★</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Card 1: 게임 -->
+                <div class="flip-card" onclick="flipCard(this)">
+                    <div class="flip-card-inner">
+                        <!-- Front -->
+                        <div class="flip-card-front pixel-box-pink">
+                            <div class="text-5xl mb-3">🎮</div>
+                            <h3 class="text-2xl font-bold text-pink-300">1. 게임</h3>
+                            <span class="text-xs text-pink-400 mt-4 bg-black/50 px-2 py-1">[ CLICK TO FLIP ]</span>
+                        </div>
+                        <!-- Back -->
+                        <div class="flip-card-back pixel-box-yellow text-yellow-200">
+                            <h4 class="text-lg font-bold mb-2 text-yellow-400 border-b-2 border-yellow-500 pb-1 w-full">왜 좋아할까?</h4>
+                            <p class="text-sm sm:text-base leading-relaxed">
+                                현실의 나보다 게임 속 내 캐릭터가 컨트롤을 훨씬 더 잘하기 때문이죠! 엔딩 보는 순간의 전율은 최고! 🏆
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: 축구 -->
+                <div class="flip-card" onclick="flipCard(this)">
+                    <div class="flip-card-inner">
+                        <!-- Front -->
+                        <div class="flip-card-front pixel-box-pink">
+                            <div class="text-5xl mb-3">⚽</div>
+                            <h3 class="text-2xl font-bold text-pink-300">2. 축구</h3>
+                            <span class="text-xs text-pink-400 mt-4 bg-black/50 px-2 py-1">[ CLICK TO FLIP ]</span>
+                        </div>
+                        <!-- Back -->
+                        <div class="flip-card-back pixel-box-yellow text-yellow-200">
+                            <h4 class="text-lg font-bold mb-2 text-yellow-400 border-b-2 border-yellow-500 pb-1 w-full">왜 좋아할까?</h4>
+                            <p class="text-sm sm:text-base leading-relaxed">
+                                90분 동안 그라운드를 뛰는 박진감! 시원한 골망을 가르는 슛을 보면 주중 스트레스가 싹 날아갑니다! 🔥
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: 밥 -->
+                <div class="flip-card" onclick="flipCard(this)">
+                    <div class="flip-card-inner">
+                        <!-- Front -->
+                        <div class="flip-card-front pixel-box-pink">
+                            <div class="text-5xl mb-3">🍚</div>
+                            <h3 class="text-2xl font-bold text-pink-300">3. 밥</h3>
+                            <span class="text-xs text-pink-400 mt-4 bg-black/50 px-2 py-1">[ CLICK TO FLIP ]</span>
+                        </div>
+                        <!-- Back -->
+                        <div class="flip-card-back pixel-box-yellow text-yellow-200">
+                            <h4 class="text-lg font-bold mb-2 text-yellow-400 border-b-2 border-yellow-500 pb-1 w-full">왜 좋아할까?</h4>
+                            <p class="text-sm sm:text-base leading-relaxed">
+                                한국인은 역시 밥심! 무슨 일이 있어도 맛있는 밥을 먹으면 HP가 즉시 100% 완충되기 때문입니다! 😋
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 3: OX Quiz -->
+        <section class="arcade-cabinet p-6 rounded-lg text-center relative" id="quiz-section">
+            <div class="inline-block bg-pink-600 text-white font-bold px-3 py-1 text-sm mb-4 border-2 border-white">
+                STAGE 1: OX QUIZ
+            </div>
+            <h3 class="text-xl sm:text-2xl text-cyan-300 mb-4">
+                "내가 가장 좋아하는 축구팀은 <span class="text-yellow-300 font-extrabold underline decoration-pink-500">맨시티(Manchester City)</span>다!"
+            </h3>
+            
+            <div class="flex justify-center gap-6 my-6">
+                <button onclick="checkQuiz('O')" class="pixel-btn pixel-btn-cyan text-2xl font-bold px-8 py-3">
+                    ⭕ O (맞다)
+                </button>
+                <button onclick="checkQuiz('X')" class="pixel-btn text-2xl font-bold px-8 py-3">
+                    ❌ X (아니다)
+                </button>
+            </div>
+
+            <!-- Quiz Result Message Box -->
+            <div id="quiz-result" class="hidden p-4 mt-4 border-4 bg-black text-center text-lg rounded"></div>
+        </section>
+
+        <!-- SECTION 4: Lunch Menu Recommender -->
+        <section class="pixel-box-yellow p-6 rounded-lg text-center">
+            <h2 class="text-2xl font-bold text-yellow-300 mb-2">
+                🍱 오늘의 점심 메뉴 추천기
+            </h2>
+            <p class="text-sm text-yellow-100 mb-6">오늘 뭐 먹을지 고민이라면? 범수의 추천 알고리즘을 가동하세요!</p>
+
+            <div class="bg-black border-4 border-yellow-500 p-6 my-4 min-h-[120px] flex flex-col items-center justify-center shadow-inner">
+                <div id="menu-display" class="text-2xl sm:text-3xl font-extrabold text-cyan-400">
+                    ???
+                </div>
+                <div id="menu-desc" class="text-xs sm:text-sm text-gray-400 mt-2">
+                    버튼을 누르면 메뉴가 선택됩니다.
+                </div>
+            </div>
+
+            <button onclick="recommendMenu()" class="pixel-btn pixel-btn-yellow text-lg font-bold">
+                🎲 메뉴 랜덤 뽑기!
+            </button>
+        </section>
+
+        <!-- SECTION 5: Mini Game (10-Sec Clicker) -->
+        <section class="pixel-box p-6 rounded-lg text-center border-emerald-400">
+            <h2 class="text-2xl font-bold text-emerald-400 mb-2">
+                ⚡ STAGE 2: 10초 광클 스피드 왕!
+            </h2>
+            <p class="text-sm text-emerald-200 mb-4">
+                10초 동안 버튼을 최대한 많이 연타하여 오락실 신기록에 도전하세요!
+            </p>
+
+            <div class="grid grid-cols-2 gap-4 my-4 max-w-xs mx-auto">
+                <div class="bg-black p-3 border-2 border-emerald-500">
+                    <div class="text-xs text-gray-400">남은 시간</div>
+                    <div id="timer-display" class="text-3xl font-bold text-yellow-400">10.0</div>
+                </div>
+                <div class="bg-black p-3 border-2 border-emerald-500">
+                    <div class="text-xs text-gray-400">클릭 횟수</div>
+                    <div id="score-display" class="text-3xl font-bold text-cyan-400">0</div>
+                </div>
+            </div>
+
+            <div class="my-6">
+                <button id="click-btn" onclick="handleClick()" class="pixel-btn pixel-btn-cyan text-xl sm:text-2xl font-extrabold px-10 py-6 w-full max-w-sm">
+                    START GAME
+                </button>
+            </div>
+
+            <div id="click-result" class="text-lg font-bold text-yellow-300 min-h-[30px]"></div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gray-500 mt-12 py-6 border-t border-gray-800">
+        <p>© 2026 PLAYER 1: KIM BUM SOO. ALL RIGHTS RESERVED.</p>
+        <p class="mt-1">MADE WITH 8-BIT RETRO POWER</p>
+    </footer>
+
+    <!-- Audio Effects using Web Audio API (No External Audio Files Needed) -->
+    <script>
+        // Web Audio API Sound Generator for 8-bit effects
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'success') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'fail') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'flip') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        }
+
+        /* -------------------------------------------------------------
+           1. Card Flip Logic
+        ------------------------------------------------------------- */
+        function flipCard(cardElem) {
+            playSound('flip');
+            cardElem.classList.toggle('flipped');
+        }
+
+        /* -------------------------------------------------------------
+           2. OX Quiz Logic
+        ------------------------------------------------------------- */
+        function checkQuiz(userAnswer) {
+            const resultBox = document.getElementById('quiz-result');
+            const section = document.getElementById('quiz-section');
+            resultBox.classList.remove('hidden');
+
+            if (userAnswer === 'O') {
+                // Correct
+                playSound('success');
+                resultBox.className = "p-4 mt-4 border-4 border-emerald-400 bg-black text-emerald-300 rounded text-center animate-bounce";
+                resultBox.innerHTML = `
+                    <div class="text-2xl mb-1">🎉 정답입니다! 🎉</div>
+                    <div>맞습니다! 완벽한 패스 축구, 펩의 맨시티(Manchester City)를 가장 애정합니다! 💙</div>
+                `;
+            } else {
+                // Wrong
+                playSound('fail');
+                section.classList.remove('shake-anim');
+                void section.offsetWidth; // trigger reflow
+                section.classList.add('shake-anim');
+
+                resultBox.className = "p-4 mt-4 border-4 border-red-500 bg-black text-red-400 rounded text-center";
+                resultBox.innerHTML = `
+                    <div class="text-2xl mb-1">❌ 땡! 틀렸습니다! ❌</div>
+                    <div>아쉽네요! 제가 가장 좋아하는 팀은 바로 **맨시티**입니다! 하늘색 피가 흐르고 있어요! ⚽</div>
+                `;
+            }
+        }
+
+        /* -------------------------------------------------------------
+           3. Lunch Menu Recommender Logic (10+ menus)
+        ------------------------------------------------------------- */
+        const lunchMenus = [
+            { name: "🔥 제육볶음", desc: "한국인의 영혼의 단짝! 매콤달콤 밥도둑!" },
+            { name: "🍕 페퍼로니 피자", desc: "치즈 길게 늘려먹으며 오락실 기분 내기!" },
+            { name: "🍜 차돌 짬뽕", desc: "얼큰한 국물로 스트레스 싹 날려버리기!" },
+            { name: "🍔 수제 치즈버거", desc: "육즙 가득 패티와 치즈의 환상적인 조합!" },
+            { name: "🍱 돈까스 정식", desc: "바삭바삭한 일식 돈까스에 고소한 소스!" },
+            { name: "🍲 김치찌개", desc: "돼지고기 듬뿍 넣고 자글자글 끓인 진국!" },
+            { name: "🍛 스페셜 카레", desc: "마늘 칩 토핑 올린 진한 풍미의 카레라이스!" },
+            { name: "🥢 짜장면 + 탕수육", desc: "중화요리의 영원한 베스트셀러 세트!" },
+            { name: "🍣 모둠 초밥", desc: "신선한 회와 밥의 깔끔하고 고급스러운 조화!" },
+            { name: "🥣 국밥 (돼지/순대)", desc: "뜨끈한 국물에 밥 말아먹으면 HP 100% 회복!" },
+            { name: "🍝 까르보나라 파스타", desc: "꾸덕하고 고소한 크림 소스의 풍미!" },
+            { name: "떡볶이 + 튀김 세트", desc: "매콤달콤 떡볶이에 바삭한 모둠 튀김!" }
+        ];
+
+        function recommendMenu() {
+            playSound('click');
+            const display = document.getElementById('menu-display');
+            const desc = document.getElementById('menu-desc');
+            
+            let count = 0;
+            const interval = setInterval(() => {
+                const randomTemp = lunchMenus[Math.floor(Math.random() * lunchMenus.length)];
+                display.innerText = randomTemp.name;
+                display.className = "text-2xl sm:text-3xl font-extrabold text-pink-400 scale-105 transition-transform";
+                count++;
+                
+                if (count > 10) {
+                    clearInterval(interval);
+                    const finalMenu = lunchMenus[Math.floor(Math.random() * lunchMenus.length)];
+                    display.innerText = finalMenu.name;
+                    display.className = "text-3xl sm:text-4xl font-extrabold text-yellow-300 animate-pulse";
+                    desc.innerText = finalMenu.desc;
+                    playSound('success');
+                }
+            }, 80);
+        }
+
+        /* -------------------------------------------------------------
+           4. Mini Game Logic (10-Second Clicker)
+        ------------------------------------------------------------- */
+        let gameScore = 0;
+        let timeLeft = 10.0;
+        let gameTimer = null;
+        let isGameRunning = false;
+        let isGameFinished = false;
+
+        function handleClick() {
+            const btn = document.getElementById('click-btn');
+            const scoreDisplay = document.getElementById('score-display');
+            const timerDisplay = document.getElementById('timer-display');
+            const resultDisplay = document.getElementById('click-result');
+
+            if (isGameFinished) {
+                // Reset Game
+                resetGame();
+                return;
+            }
+
+            if (!isGameRunning) {
+                // Start Game
+                isGameRunning = true;
+                gameScore = 0;
+                timeLeft = 10.0;
+                resultDisplay.innerText = "🔥🔥 연타하세요! 🔥🔥";
+                btn.innerText = "PUSH!! PUSH!!";
+                btn.className = "pixel-btn text-xl sm:text-2xl font-extrabold px-10 py-6 w-full max-w-sm bg-red-600 border-red-800";
+
+                gameTimer = setInterval(() => {
+                    timeLeft -= 0.1;
+                    if (timeLeft <= 0) {
+                        timeLeft = 0;
+                        endGame();
+                    }
+                    timerDisplay.innerText = timeLeft.toFixed(1);
+                }, 100);
+            }
+
+            // During Game
+            if (isGameRunning) {
+                gameScore++;
+                scoreDisplay.innerText = gameScore;
+                playSound('click');
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameTimer);
+            isGameRunning = false;
+            isGameFinished = true;
+
+            const btn = document.getElementById('click-btn');
+            const resultDisplay = document.getElementById('click-result');
+
+            btn.innerText = "RETRY (다시 하기)";
+            btn.className = "pixel-btn pixel-btn-yellow text-xl sm:text-2xl font-extrabold px-10 py-6 w-full max-w-sm";
+
+            playSound('success');
+
+            // Grade based on score
+            let grade = "";
+            let comment = "";
+            if (gameScore >= 70) {
+                grade = "RANK [SSS] - 빛의 속도!";
+                comment = "당신은 손가락이 안 보이는 오락실의 신!";
+            } else if (gameScore >= 50) {
+                grade = "RANK [A] - 고수 등극!";
+                comment = "엄청난 연타 속도네요! 굉장합니다!";
+            } else if (gameScore >= 30) {
+                grade = "RANK [B] - 평범한 게이머";
+                comment = "손가락 풀고 다시 도전해 보세요!";
+            } else {
+                grade = "RANK [C] - 조이스틱 입문자";
+                comment = "조금 더 빠르게 연타할 수 있어요!";
+            }
+
+            resultDisplay.innerHTML = `
+                <div class="text-2xl text-yellow-300 font-extrabold">${grade}</div>
+                <div class="text-sm text-cyan-300 mt-1">${comment} (기록: ${gameScore}회)</div>
+            `;
+        }
+
+        function resetGame() {
+            gameScore = 0;
+            timeLeft = 10.0;
+            isGameRunning = false;
+            isGameFinished = false;
+
+            document.getElementById('score-display').innerText = "0";
+            document.getElementById('timer-display').innerText = "10.0";
+            document.getElementById('click-result').innerText = "";
+            
+            const btn = document.getElementById('click-btn');
+            btn.innerText = "START GAME";
+            btn.className = "pixel-btn pixel-btn-cyan text-xl sm:text-2xl font-extrabold px-10 py-6 w-full max-w-sm";
+            playSound('click');
+        }
+    </script>
+</body>
+</html>
